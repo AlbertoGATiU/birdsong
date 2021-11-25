@@ -69,7 +69,8 @@ for pred in predList:
 		classLabel = entry['class'].replace("\n","")
 		
 		# Check confusion (True positive/negative or false positive/negative)
-		if (audioId == predFileId):
+		# Check only if label is not "Mystery mystery"
+		if (audioId == predFileId and classLabel != "Mystery mystery"):
 			confusion[getConfusion(mostPredClass, classLabel)] += 1
 
 		# Checking test set with Turdus Merula (FOR ACCURACY)
