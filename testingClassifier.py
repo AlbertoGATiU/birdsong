@@ -5,6 +5,8 @@ from statistics import mean
 import numpy as np
 import matplotlib.pyplot as plt
 
+from sklearn.metrics import roc_curve, roc_auc_score
+
 def getPredictionForClass(predictions, label):
 	for key, value in predictions.items():
 		if(key == label):
@@ -60,6 +62,9 @@ with open('recordingsNL.csv') as f:
 bbAccuracy = []
 # Confusion: TP, TN, FP, FN
 confusion = [0, 0, 0, 0]
+# ROC values
+y_true = []
+y_pred = []
 
 for pred in predList:
 	predFileId = str(pred['FileId']).replace(".0", "")
@@ -70,8 +75,15 @@ for pred in predList:
 		
 		# Check confusion (True positive/negative or false positive/negative)
 		# Check only if label is not "Mystery mystery"
-		if (audioId == predFileId and classLabel != "Mystery mystery"):
+		if (audioId == predFileId and classLabel != "Mystery mystery" and classLabel != "Sonus Naturalis"):
 			confusion[getConfusion(mostPredClass, classLabel)] += 1
+			# ROC
+			# True labels
+			if (classLabel == targetName): y_true.append(1)
+			else: y_true.append(0)
+			# Pred labels
+			if (mostPredClass == targetName): y_pred.append(1)
+			else: y_pred.append(0)
 
 		# Checking test set with Turdus Merula (FOR ACCURACY)
 		if(classLabel == targetName):
@@ -99,7 +111,11 @@ print("\nSensitivity: ", recall)
 print("Specificity: ", specif)
 f1_score = 2*(precision*recall)/(precision+recall)
 print("\nF1 Score: ", f1_score)
+fpr, tpr, _ = roc_curve(y_true,y_pred)
+auc_score = roc_auc_score(y_true, y_pred)
+print("\nAUC Score: ", auc_score)
 print("##############################################################")
+
 # Calculate probability distribution
 n, bins, patches = plt.hist(bbAccuracy)
 #plt.show()
