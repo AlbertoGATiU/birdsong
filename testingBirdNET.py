@@ -28,17 +28,17 @@ def getMostPredClasses(filePath):
 	return mostPred
 
 def getConfusion(mostProbClasses, realClass):
-	if (realClass in mostProbClasses and realClass == targetClass):
+	if (targetClass in mostProbClasses and realClass == targetClass):
 		return 0
-	if (realClass in mostProbClasses and realClass != targetClass):
+	if (targetClass not in mostProbClasses and realClass != targetClass):
 		return 1
-	if (realClass not in mostProbClasses and realClass != targetClass):
+	if (targetClass in mostProbClasses and realClass != targetClass):
 		return 2
-	if (realClass not in mostProbClasses and realClass == targetClass):
+	if (targetClass not in mostProbClasses and realClass == targetClass):
 		return 3
 
 
-####################################################################
+#################################### MAIN ##########################
 targetClass = "Eurasian Blackbird"
 predTxtPath = "/home/alberto/birdsong/dataset/xenocantoNL/predTxt/"
 filesInPath = os.listdir(predTxtPath)
@@ -52,7 +52,6 @@ with open('classCommonLabels.txt','r') as fRealClasses:
 		if (realLabel == "Common Blackbird\n"): realLabel = "Eurasian Blackbird\n"
 		realLabels.append({'audioId':recId, 'class':realLabel})
 
-# MAIN
 bbPreds = []
 y_true = []
 y_pred = []
@@ -119,5 +118,5 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive rate')
 
 plt.legend(loc='best')
-#plt.savefig('ROC',dpi=300)
+
 plt.show();
