@@ -1,30 +1,35 @@
-import os
+import csv
+import sys
+import subprocess
+import os 
 
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import roc_curve, roc_auc_score
 
-############################# METHODS ##############################
-def getMostPredClasses(filePath):
+
+############### METHODS ###############
+
+def getMostPredClasses(dict_list):
 	mostPred = []
 	confThres = 0.60
-	with open(filePath) as f:
-		#print("\nANALYSING FILE ", filePath)
-		lines = f.readlines()
-		# Remove header
-		del lines[0]
-		if (len(lines) > 0):
-			# Obtain species and their probabilities
-			probs = []
-			for line in lines: 
-				line = line.strip() # Remove extra white spaces
-				line = line.replace("\t", ";")
-				entry = line.split(";")
-				if(float(entry[10]) >= confThres and entry[9] not in mostPred):
-					mostPred.append(entry[9])
-					probs.append(entry[10])
-		else:
-			mostPred.append("Null")
+
+	for timePred in dict_list:
+		for item in timePred.items():
+			# Get lists of values and keys
+			values = item[1].split(";")
+			keys = item[0].split(";")
+
+			# Iterate through values/keys
+			for i in range(len(values)):
+				value = values[i]
+				key = keys[i]
+				if(float(value) > confThres and 
+				   key not in mostPred and 
+				   key != "StartTime [s]" and
+				   key != "EndTime [s]"):
+					mostPred.append(key)
+	
 	return mostPred
 
 def getConfusion(mostProbClasses, realClass):
@@ -37,42 +42,56 @@ def getConfusion(mostProbClasses, realClass):
 	if (targetClass not in mostProbClasses and realClass == targetClass):
 		return 3
 
+################ MAIN ################
 
-#################################### MAIN ##########################
-targetClass = "Eurasian Blackbird"
-predTxtPath = "/home/alberto/birdsong/dataset/xenocantoNL/predTxt/"
-filesInPath = os.listdir(predTxtPath)
+nameFormat = "_c1_sorted.csv"
 
-# Open real-class file 
-realLabels = []
-with open('classCommonLabels.txt','r') as fRealClasses:
-	lines = fRealClasses.readlines()
-	for line in lines:
-		recId, realLabel = line.split(",")
-		if (realLabel == "Common Blackbird\n"): realLabel = "Eurasian Blackbird\n"
-		realLabels.append({'audioId':recId, 'class':realLabel})
-counter = 0
 bbPreds = []
 y_true = []
 y_pred = []
 # Confussion TP; TN; FP; FN
 confusion = [0, 0, 0, 0]
+
+counter = 0
+
+
+# Open real-class file 
+realLabels = []
+predTxtPath = "./transfFiles/sortedCSV_c1/"
+filesInPath = os.listdir(predTxtPath)
+targetClass = "Turdus merula"
+
+with open('classLabels.txt','r') as fRealClasses:
+	lines = fRealClasses.readlines()
+	for line in lines:
+		recId, realLabel = line.split(",")
+		realLabel = realLabel.replace("\n","")
+		realLabels.append({'audioId':recId, 'class':realLabel})
+
 for file in filesInPath:
-	if(file.endswith("BirdNET.selections.txt")):
+	# Take only CSV files with proper format name
+	if(file.endswith(nameFormat)):
 		# Obtain Id and class predicted above a threshold
-		audioId = file.split(".")[0]
-		pred_classes = getMostPredClasses(predTxtPath+str(file))
+		audioId = file.replace(nameFormat,"")
+		audioId = audioId.replace(" ","")
+		# Open CSV file with predictions 	
+		with open(predTxtPath+str(file)) as f:
+		    dict_pred = [{k: str(v) for k, v in row.items()}
+		        for row in csv.DictReader(f, skipinitialspace=True)]
+		
+		# Get predicted classes (with threshold)
+		pred_classes = getMostPredClasses(dict_pred)
 
 		# Check with the REAL LABELS txtfile
 		if (audioId in [ sub['audioId'] for sub in realLabels ]):
+			counter += 1
 			dictEntry = next((sub for sub in realLabels if sub['audioId'] == audioId), None)
-			realClass = dictEntry['class'].replace("\n","")
+			realClass = dictEntry['class']
 
 			confusion[getConfusion(pred_classes, realClass)] += 1
 			
 			# Check Blackbird accuracy
 			if (realClass == targetClass):
-				counter += 1
 				if (realClass in pred_classes): 
 					bbPreds.append(1)
 				else:
@@ -84,9 +103,9 @@ for file in filesInPath:
 			# Pred labels
 			if (targetClass in pred_classes): y_pred.append(1)
 			else: y_pred.append(0)
+		
 
 print("COUNTER: ", counter)
-
 ####################### EVALUATION METRICS ########################
 bbAcc = sum(bbPreds)/len(bbPreds)
 format_acc = "{:.2f}".format(100*bbAcc)
@@ -123,3 +142,4 @@ plt.ylabel('True Positive rate')
 plt.legend(loc='best')
 
 plt.show();
+
