@@ -116,7 +116,7 @@ f1_score = 2*(precision*recall)/(precision+recall)
 fpr, tpr, _ = roc_curve(y_true,y_pred)
 auc_score = roc_auc_score(y_true, y_pred)
 
-print("\n ################### BirdNET Evaluation Metrics: ###################")
+print("\n ################### BirdID Evaluation Metrics: ###################")
 print("Blackbird mean accuracy: ", str(format_acc), " %\n")
 print("True Positives  (TP): ", confusion[0])
 print("True Negative   (TN): ", confusion[1])
