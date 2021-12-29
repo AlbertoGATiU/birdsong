@@ -88,7 +88,7 @@ for file in filesInPath:
 print("COUNTER: ", counter)
 
 ####################### EVALUATION METRICS ########################
-bbAcc = sum(bbPreds)/len(bbPreds)
+bbAcc = (confusion[0]+confusion[1])/(confusion[0]+confusion[1]+confusion[2]+confusion[3])
 format_acc = "{:.2f}".format(100*bbAcc)
 precision = confusion[0]/(confusion[0]+confusion[2])
 recall = confusion[0]/(confusion[0]+confusion[3])
