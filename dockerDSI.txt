@@ -1,0 +1,13 @@
+### DOCKER RUN COMMANDS FOR THE 4 COMPONENTS ### 
+
+# DSI UI (in server, use 80, port open to public)
+sudo docker run -d -p 80:3000 --add-host=host.docker.internal:host-gateway dsi-ui_dsi_ui
+
+# DSI Repo
+sudo docker run -d -p 5000:5000 -v /var/run/docker.sock:/var/run/docker.sock --add-host=host.docker.internal:host-gateway --env LOCALHOST_URL_REPLACEMENT=host.docker.internal dsi-repository_dsi_repo
+
+# DSI Biocloud-rest
+sudo docker run -d -p 4500:4500 biocloud-rest-enable-api-and-file-storage_biocloud_rest
+
+# DSI ai-runner
+sudo docker run -d -p 4000:4000 --add-host=host.docker.internal:host-gateway --env LOCALHOST_URL_REPLACEMENT=host.docker.internal dsi-ai-runner_dsi_ai_runner
